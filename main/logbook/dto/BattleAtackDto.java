@@ -328,6 +328,9 @@ public class BattleAtackDto {
         BattleAtackDto fatack = null;
         BattleAtackDto eatack = null;
 
+        /*
+         * 開幕雷撃戦
+         */
         if (JsonUtils.hasKey(raigeki, "api_frai_list_items")) {
 
             fatack = makeRaigeki(
@@ -355,6 +358,46 @@ public class BattleAtackDto {
                     JsonUtils.getJsonArray(raigeki, "api_fdam"),
                     convertNewApiToOldApiZero(JsonUtils.getJsonArray(raigeki, "api_ecl_list_items")),
                     convertNewApiToOldApiZero(JsonUtils.getJsonArray(raigeki, "api_eydam_list_items")));
+
+            if ((baseidx == 1) && (fatack != null) && (fatack.combineEnabled == false)) {
+                // 旧APIとの互換性: 味方の随伴艦のみが雷撃を受ける場合(6-5実装以前の連合艦隊はこれ。6-5実装以降の連合艦隊は不明)
+                if (isFriendSecond) {
+                    eatack.makeTargetCombined(friendSecondBase);
+                }
+            }
+            attaks.add(eatack);
+        }
+
+        /*
+         * 閉幕雷撃戦
+         */
+        if (JsonUtils.hasKey(raigeki, "api_frai")) {
+
+            fatack = makeRaigeki(
+                    baseidx,
+                    true,
+                    JsonUtils.getJsonArray(raigeki, "api_frai"),
+                    JsonUtils.getJsonArray(raigeki, "api_edam"),
+                    JsonUtils.getJsonArray(raigeki, "api_fcl"),
+                    JsonUtils.getJsonArray(raigeki, "api_fydam"));
+
+            if ((baseidx == 1) && (fatack.combineEnabled == false)) {
+                // 旧APIとの互換性: 味方の随伴艦のみが雷撃を行う場合(6-5実装以前の連合艦隊はこれ。6-5実装以降の連合艦隊は不明)
+                if (isFriendSecond) {
+                    fatack.makeOriginCombined(friendSecondBase);
+                }
+            }
+            attaks.add(fatack);
+        }
+
+        if (JsonUtils.hasKey(raigeki, "api_erai")) {
+            eatack = makeRaigeki(
+                    baseidx,
+                    false,
+                    JsonUtils.getJsonArray(raigeki, "api_erai"),
+                    JsonUtils.getJsonArray(raigeki, "api_fdam"),
+                    JsonUtils.getJsonArray(raigeki, "api_ecl"),
+                    JsonUtils.getJsonArray(raigeki, "api_eydam"));
 
             if ((baseidx == 1) && (fatack != null) && (fatack.combineEnabled == false)) {
                 // 旧APIとの互換性: 味方の随伴艦のみが雷撃を受ける場合(6-5実装以前の連合艦隊はこれ。6-5実装以降の連合艦隊は不明)
